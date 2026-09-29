@@ -1,0 +1,54 @@
+# --------------------
+# Python
+# --------------------
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+**/venv/
+**/.venv/
+
+# Python caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --------------------
+# Environment / secrets
+# --------------------
+.env
+.env.*
+!.env.example
+
+# --------------------
+# Logs / runtime files
+# --------------------
+logs/
+*.log
+*.pid
+*.sock
+
+# --------------------
+# IDE / OS
+# --------------------
+.idea/
+.vscode/
+.DS_Store
+
+# --------------------
+# Build / temporary files
+# --------------------
+dist/
+build/
+*.tmp
+*.temp
+
+# --------------------
+# Local databases if any
+# --------------------
+*.sqlite
+*.sqlite3
