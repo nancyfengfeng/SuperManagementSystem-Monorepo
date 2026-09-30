@@ -88,9 +88,7 @@ def _is_invalid_barcode(code: str) -> bool:
 
 
 @router.post("/match-products")
-def match_products(
-    data: ProductMatchRequest
-):
+def match_products(data: ProductMatchRequest):
     db = SessionLocal()
 
     try:
@@ -103,10 +101,7 @@ def match_products(
 
             supplier = (
                 db.query(Supplier)
-                .filter(
-                    Supplier.tax_id ==
-                    file.supplier_tax_id
-                )
+                .filter(Supplier.tax_id == file.supplier_tax_id)
                 .first()
             )
 
@@ -114,38 +109,24 @@ def match_products(
                 continue
 
             for item in file.products:
-                supplier_code = (
-                    item.supplier_product_code
-                )
+                supplier_code = item.supplier_product_code
+                key = (supplier.id, supplier_code)
 
-                key = (
-                    supplier.id,
-                    supplier_code
-                )
-
-                if (
-                    supplier_code
-                    and key in seen
-                ):
+                if supplier_code and key in seen:
                     continue
 
                 if supplier_code:
                     seen.add(key)
 
-                # 1. 先查 SupplierProduct
+                # 1. 已经存在 SupplierProduct
                 existing = None
 
                 if supplier_code:
                     existing = (
-                        db.query(
-                            SupplierProduct
-                        )
+                        db.query(SupplierProduct)
                         .filter(
-                            SupplierProduct.supplier_id
-                            == supplier.id,
-
-                            SupplierProduct.supplier_product_code
-                            == supplier_code
+                            SupplierProduct.supplier_id == supplier.id,
+                            SupplierProduct.supplier_product_code == supplier_code
                         )
                         .first()
                     )
@@ -156,117 +137,98 @@ def match_products(
                     if existing.product_id:
                         product = (
                             db.query(Product)
-                            .filter(
-                                Product.id ==
-                                existing.product_id
-                            )
+                            .filter(Product.id == existing.product_id)
                             .first()
                         )
 
+                    # 优先使用 SupplierProduct 已保存的 barcode
+                    # 如果没有，但已经关联 Product，则使用 Product.barcode
+                    barcode = (
+                        existing.barcode
+                        or (product.barcode if product else None)
+                    )
+
                     results.append({
-                        "supplier_id":
-                            supplier.id,
+                        "supplier_id": supplier.id,
+                        "supplier_name": supplier.name,
+                        "description": item.description,
+                        "supplier_product_code": supplier_code,
+                        "commercial_codes": item.commercial_codes,
+                        "barcode": barcode,
+                        "product_id": existing.product_id,
+                        "product_name": product.name if product else None,
 
-                        "supplier_name":
-                            supplier.name,
+                        # 只要已经有 barcode，就不需要再进手动 Dialog
+                        "matched": bool(barcode),
 
-                        "description":
-                            item.description,
-
-                        "supplier_product_code":
-                            supplier_code,
-
-                        "commercial_codes":
-                            item.commercial_codes,
-
-                        "barcode":
-                            existing.barcode,
-
-                        "product_id":
-                            existing.product_id,
-
-                        "product_name":
-                            product.name
-                            if product
-                            else None,
-
-                        "matched":
-                            existing.product_id
-                            is not None,
-
-                        "match_source":
-                            "supplier_product",
+                        "match_source": (
+                            "supplier_product"
+                            if barcode
+                            else None
+                        ),
                     })
 
                     continue
 
-                # 2. 没有 SupplierProduct
-                #    再尝试 barcode 匹配 Product
+                # 2. SupplierProduct 不存在
+                # 先尝试从 XML 找 barcode
+                xml_barcode = _extract_barcode(
+                    item.commercial_codes,
+                    supplier_code
+                )
+
+                # 3. 再尝试用 XML 代码匹配系统 Product
                 valid_codes = [
                     code
-                    for code
-                    in item.commercial_codes
-                    if not _is_invalid_barcode(
-                        code
-                    )
+                    for code in item.commercial_codes
+                    if not _is_invalid_barcode(code)
                 ]
 
                 matched_product = None
-                matched_barcode = None
 
                 if valid_codes:
                     matched_product = (
                         db.query(Product)
-                        .filter(
-                            Product.barcode.in_(
-                                valid_codes
-                            )
-                        )
+                        .filter(Product.barcode.in_(valid_codes))
                         .first()
                     )
 
-                    if matched_product:
-                        matched_barcode = (
-                            matched_product.barcode
-                        )
+                # Product 找到时使用系统 barcode
+                # 找不到时，只要 XML 本身有 barcode 也可以
+                barcode = (
+                    matched_product.barcode
+                    if matched_product
+                    else xml_barcode
+                )
 
                 results.append({
-                    "supplier_id":
-                        supplier.id,
-
-                    "supplier_name":
-                        supplier.name,
-
-                    "description":
-                        item.description,
-
-                    "supplier_product_code":
-                        supplier_code,
-
-                    "commercial_codes":
-                        item.commercial_codes,
-
-                    "barcode":
-                        matched_barcode,
-
-                    "product_id":
+                    "supplier_id": supplier.id,
+                    "supplier_name": supplier.name,
+                    "description": item.description,
+                    "supplier_product_code": supplier_code,
+                    "commercial_codes": item.commercial_codes,
+                    "barcode": barcode,
+                    "product_id": (
                         matched_product.id
                         if matched_product
-                        else None,
-
-                    "product_name":
+                        else None
+                    ),
+                    "product_name": (
                         matched_product.name
                         if matched_product
-                        else None,
+                        else None
+                    ),
 
-                    "matched":
-                        matched_product
-                        is not None,
+                    # 有 barcode 就算完成，不要求一定有 product_id
+                    "matched": bool(barcode),
 
-                    "match_source":
+                    "match_source": (
                         "barcode"
                         if matched_product
-                        else None,
+                        else "xml_barcode"
+                        if xml_barcode
+                        else None
+                    ),
                 })
 
         return {

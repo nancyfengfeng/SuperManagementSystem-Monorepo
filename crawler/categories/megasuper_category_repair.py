@@ -127,7 +127,7 @@ def get_external_category_id(product):
 
 
 
-def repair_categories(dry_run=True):
+def repair_categories(dry_run=True, verbose=False):
 
     """
     dry_run=True:
@@ -156,9 +156,8 @@ def repair_categories(dry_run=True):
         )
 
 
-        print(
-            f"发现 {len(products)} 个商品没有分类"
-        )
+        if verbose:
+            print(f"发现 {len(products)} 个商品没有分类")
 
 
         updated = 0
@@ -176,9 +175,8 @@ def repair_categories(dry_run=True):
             start=1
         ):
 
-            print(
-                f"\n处理第 {index} 批，共 {len(batch)} 个"
-            )
+            if verbose:
+                print(f"\n处理第 {index} 批，共 {len(batch)} 个")
 
 
             barcodes = [
@@ -194,12 +192,8 @@ def repair_categories(dry_run=True):
                 )
 
             except Exception as e:
-
-                print(
-                    "API错误:",
-                    e
-                )
-
+                if verbose:
+                    print("API错误:", e)
                 continue
 
 
@@ -267,25 +261,27 @@ def repair_categories(dry_run=True):
             time.sleep(1)
 
 
+        if verbose:
+            print("\n==========")
+            print("匹配成功:", updated)
+            print("跳过:", skipped)
+            print("跳过原因:", skip_reason)
+            print("数据库更新:", "是" if not dry_run else "否")
 
-        print("\n==========")
-        print("匹配成功:", updated)
-        print("跳过:", skipped)
-        print("跳过原因:", skip_reason)
-        print("数据库更新:","是" if not dry_run else "否")
+        return {
+            "total": len(products),
+            "matched": updated,
+            "skipped": skipped,
+            "skip_reason": skip_reason,
+            "updated_database": not dry_run
+        }
 
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "--update",
-        action="store_true",
-        help="写入数据库"
-    )
-
+    parser.add_argument("--update", action="store_true")
     args = parser.parse_args()
 
     print(
@@ -294,5 +290,6 @@ if __name__ == "__main__":
     )
 
     repair_categories(
-        dry_run=not args.update
+        dry_run=not args.update,
+        verbose=True
     )

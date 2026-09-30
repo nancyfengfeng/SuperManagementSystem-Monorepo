@@ -12,6 +12,9 @@ from routers.promotion import router as promotion_router
 from routers.crawler_run import router as crawler_run_router
 from routers.supplier_invoice import router as supplier_invoice_router
 from routers.supplier_product import router as supplier_product_router
+from routers.crawler import router as crawler_router
+from routers.setting import router as settings_router
+
 
 api_router = APIRouter()
 
@@ -27,3 +30,5 @@ api_router.include_router(promotion_router,prefix="/api")
 api_router.include_router(crawler_run_router,prefix="/api")
 api_router.include_router(supplier_invoice_router,prefix="/api")
 api_router.include_router(supplier_product_router,prefix="/api")
+api_router.include_router(crawler_router,prefix="/api")
+api_router.include_router(settings_router,prefix="/api")
