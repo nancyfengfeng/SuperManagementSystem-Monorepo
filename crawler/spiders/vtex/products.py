@@ -33,7 +33,16 @@ def get_products(store_code: str,category_slug: str,page: int = 1,page_size: int
     )
 
 
-    params = {"page": page, "pageSize": page_size, "sc": config["sc"], "country": config["country"], "locale": config["locale"]}
+    params = {
+        "page": page,
+        "pageSize": page_size,
+        "sc": config["sc"],
+        "country": config["country"],
+        "locale": config["locale"],
+    }
+
+    if config.get("region_id"):
+        params["regionId"] = config["region_id"]
 
 
     response = requests.get(

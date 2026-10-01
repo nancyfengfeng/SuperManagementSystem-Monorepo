@@ -1,27 +1,25 @@
 VTEX_STORES = {
-
     "walmart": {
         "domain": "www.walmart.co.cr",
-        "locale": "es-CR",
-        "country": "CRI",
         "sc": "1",
-        "store_code": "walmart",
+        "country": "CRI",
+        "locale": "es-CR",
+        "region_id": "U1cjd2FsbWFydGNyd200NDQ5",
     },
 
     "maxipali": {
         "domain": "www.maxipali.co.cr",
-        "locale": "es-CR",
-        "country": "CRI",
         "sc": "3",
-        "store_code": "maxipali",
+        "country": "CRI",
+        "locale": "es-CR",
+        "region_id": "U1cjd2FsbWFydGNyYm80NDY5",
     },
 
     "masxmenos": {
         "domain": "www.masxmenos.cr",
-        "locale": "es-CR",
-        "country": "CRI",
         "sc": "2",
-        "store_code": "masxmenos",
-    }
-
+        "country": "CRI",
+        "locale": "es-CR",
+        "region_id": "U1cjd2FsbWFydGNyc3AzMDMw",
+    },
 }

@@ -5,6 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 from crawler.schemas.product import ProductItem
 
 from crawler.services.category_service import get_category_id
+from crawler.utils.logger import logger
 
 from shared.models.product import Product
 from shared.models.store_product import StoreProduct
@@ -27,6 +28,7 @@ def save_product(session, item: ProductItem):
     product_update = {
         "name": item.name,
         "category_id": category_id,
+        "updated_at": now,
     }
 
 
@@ -100,6 +102,7 @@ def save_product(session, item: ProductItem):
             "in_stock": True,
             "is_active": True,
             "last_seen_at": now,
+            "updated_at": now,
         },
     )
 

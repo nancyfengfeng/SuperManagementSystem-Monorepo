@@ -18,6 +18,8 @@ from crawler.services.crawler_run_service import start_crawler_run, finish_crawl
 
 from crawler.utils.logger import logger
 
+from models.supplier_products import SupplierProduct
+
 
 VTEX_MAX_WORKERS = 3
 MEGASUPER_MAX_WORKERS = 3

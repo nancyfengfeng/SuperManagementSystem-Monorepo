@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shared.db_base import Base
 
 from sqlalchemy import (
@@ -12,6 +14,9 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from shared.models.mixins import TimestampMixin
+
+if TYPE_CHECKING:
+    from admin.models.supplier_products import SupplierProduct
 
 
 class Product(TimestampMixin, Base):
