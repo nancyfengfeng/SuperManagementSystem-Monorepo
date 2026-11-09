@@ -10,6 +10,11 @@ PUBLIC_PATHS = {
     "/api/refresh",
     "/login",
     "/refresh",
+    "/docs",
+    "/docs/oauth2-redirect",
+    "/openapi.json",
+    "/redoc",
+    "/favicon.ico",
 }
 
 class AuthMiddleware(BaseHTTPMiddleware):
